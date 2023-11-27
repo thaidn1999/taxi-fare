@@ -69,8 +69,8 @@
       </table>
     </div>
     <div class="flex justify-end">
-      <button type="button" class="rounded-md bg-gray-300 hover:bg-gray-400 font-semibold text-gray-800 py-2 px-4 my-6"
-        @click="handleBack">Back</button>
+      <button type="button" class="rounded-md bg-green-500 hover:bg-green-400 font-semibold text-white py-2 px-4 my-6"
+        @click="handleAddUser">Add user</button>
     </div>
   </div>
 </template>
@@ -99,8 +99,8 @@ const handleDelete = (userEmail: string) => {
   const filesJSONString = JSON.stringify(filesData.value);
   localStorage.setItem('filesData', filesJSONString);
 }
-const handleBack = () => {
-  router.push({ name: 'home' })
+const handleAddUser = () => {
+  router.push({ name: 'add-user' })
 }
 </script>
 

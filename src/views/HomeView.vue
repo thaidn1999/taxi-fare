@@ -36,7 +36,7 @@
                   <div
                     class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
                     <input v-model="userInfo.email" type="email" name="email" id="email" :disabled="isEdit"
-                      :class="isEdit ? 'bg-gray-300 rounded-md' : null"
+                      :class="isEdit ? 'bg-gray-500 rounded-md' : null"
                       class="block flex-1 border-0 bg-transparent py-1.5 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                       placeholder="janesmith@gmail.com" />
                   </div>
@@ -84,18 +84,20 @@
         </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-6">
-          <button type="button" class="text-sm font-semibold leading-6 text-gray-900"
-            @click="handleCancel">Cancel</button>
-          <button @click="handleSubmit" type="button" :disabled="!isDisable"
-            :class="!isDisable ? 'bg-gray-400 hover:bg-gray-400 focus-visible:outline-none cursor-default' : null"
-            class="rounded-md cursor-pointer bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Save</button>
+          <button class="text-sm font-semibold leading-6 text-gray-900" @click="handleCancel">
+            Cancel
+          </button>
+          <button @click="handleSubmit"
+            class="rounded-md cursor-pointer bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            Save
+          </button>
         </div>
       </form>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { IUser } from '@/interface/user';
 import { csvInfo } from '@/data/csv';
 import { priceFare } from '@/modules/utilities';
@@ -108,13 +110,6 @@ const isEdit = computed<boolean>(() => {
   return route.name === 'edit-user' ? true : false
 })
 
-const isDisable = computed<boolean>(() => {
-  return userInfo.value.baseDistance && userInfo.value.baseFare
-    && userInfo.value.name && userInfo.value.surName
-    && userInfo.value.vehicleType && userInfo.value.email
-    ? true : false
-})
-
 const userInfo = ref<IUser>({
   name: '',
   surName: '',
@@ -123,6 +118,9 @@ const userInfo = ref<IUser>({
   baseFare: 0,
   baseDistance: 0
 })
+
+const isError = ref<boolean>(true);
+
 const userInfoEdit = ref<IUser>({
   name: '',
   surName: '',
@@ -156,17 +154,23 @@ const replaceObjectByKey = (userEdit: IUser) => {
 const handleCancel = () => {
   if (isEdit.value) {
     resetForm();
-    router.push({ name: 'home' });
   }
+  router.push({ name: 'home' });
 }
 
 const handleSubmit = () => {
+  if (isError.value) {
+    alert('Please enter all input boxes completely or Base Fare Price and Base Fare Distance difference 0!')
+    router.push({ name: 'home' });
+    return;
+  }
   // check trong local storage co listUser thi gan lai listUser
   const filesDataExists = !!localStorage.getItem('filesData');
   const storedData = localStorage.getItem('filesData');
   if (filesDataExists && storedData) {
     listUserInfo.value = JSON.parse(storedData)
   }
+
   if (!isEdit.value) {
     // tinh fare tuong ung voi user vua nhap
     priceFare(csvInfo.distanceTravel, csvInfo.travelUnit, csvInfo.costPerDistance, userInfo.value.baseDistance, userInfo.value.baseFare);
@@ -193,8 +197,7 @@ const handleSubmit = () => {
   // luu vao local storage
   const filesJSONString = JSON.stringify(listUserInfo.value);
   localStorage.setItem('filesData', filesJSONString);
-
-  router.push({ name: 'list-user' })
+  router.push({ name: 'home' })
 }
 
 const resetForm = () => {
@@ -207,6 +210,16 @@ const resetForm = () => {
     baseDistance: 0
   }
 }
+
+watch(() => userInfo.value, () => {
+  if (isEdit.value) {
+    !userInfo.value.name || !userInfo.value.surName || !userInfo.value.vehicleType || !userInfo.value.baseFare || !userInfo.value.baseDistance ? isError.value = true : isError.value = false
+  }
+  else {
+    !userInfo.value.name || !userInfo.value.surName || !userInfo.value.email
+      || !userInfo.value.baseFare || !userInfo.value.baseDistance || !userInfo.value.vehicleType ? isError.value = true : isError.value = false
+  }
+}, { deep: true, immediate: true })
 
 </script>
 
