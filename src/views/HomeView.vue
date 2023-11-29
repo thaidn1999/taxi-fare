@@ -6,6 +6,7 @@
         <div class="space-y-12">
           <div class="border-b border-gray-900/10 pb-12">
             <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+
               <div class="sm:col-span-6">
                 <label for="username" class="block text-sm font-medium leading-6 text-gray-900">Name</label>
                 <div class="mt-2">
@@ -33,15 +34,14 @@
               <div class="sm:col-span-6">
                 <label for="email" class="block text-sm font-medium leading-6 text-gray-900">Email</label>
                 <div class="mt-2">
-                  <div
-                    class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
-                    <input v-model="userInfo.email" type="email" name="email" id="email" :disabled="isEdit"
-                      :class="isEdit ? 'bg-gray-500 rounded-md' : null"
+                  <div class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300">
+                    <input v-model="userInfo.email" type="email" name="email" id="email"
                       class="block flex-1 border-0 bg-transparent py-1.5 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                       placeholder="janesmith@gmail.com" />
                   </div>
                 </div>
               </div>
+
 
               <div class="sm:col-span-6">
                 <label for="vehicle" class="block text-sm font-medium leading-6 text-gray-900">Vehicle Type</label>
@@ -78,7 +78,6 @@
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -99,9 +98,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import type { IUser } from '@/interface/user';
-import { csvInfo } from '@/data/csv';
 import { priceFare } from '@/modules/utilities';
 import { useRoute, useRouter } from 'vue-router';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = useRouter();
 const route = useRoute();
@@ -109,6 +108,12 @@ const route = useRoute();
 const isEdit = computed<boolean>(() => {
   return route.name === 'edit-user' ? true : false
 })
+
+const dataCsv = ref([])
+const fileCsv = localStorage.getItem('fileCsv');
+if (fileCsv) {
+  dataCsv.value = JSON.parse(fileCsv);
+}
 
 const userInfo = ref<IUser>({
   name: '',
@@ -131,7 +136,11 @@ const userInfoEdit = ref<IUser>({
 })
 
 if (isEdit.value) {
-  userInfoEdit.value = JSON.parse(`${route.query.user}`)
+  const filesDataExists = !!localStorage.getItem('filesData');
+  const storedData = localStorage.getItem('filesData');
+  if (filesDataExists && storedData) {
+    userInfoEdit.value = JSON.parse(storedData).find((item: IUser) => item.id === route.params.id)
+  }
   userInfo.value = {
     name: userInfoEdit.value.name,
     surName: userInfoEdit.value.surName,
@@ -143,13 +152,7 @@ if (isEdit.value) {
 }
 
 const listUserInfo = ref<IUser[]>([])
-
-const replaceObjectByKey = (userEdit: IUser) => {
-  const index = listUserInfo.value.findIndex(item => item.email === userEdit.email);
-  if (index !== -1) {
-    listUserInfo.value.splice(index, 1, userEdit);
-  }
-}
+// find index with email
 
 const handleCancel = () => {
   if (isEdit.value) {
@@ -158,13 +161,20 @@ const handleCancel = () => {
   router.push({ name: 'home' });
 }
 
+const updateData = (userEdit: IUser) => {
+  const index = listUserInfo.value.findIndex(item => item.id === userEdit.id);
+  if (index !== -1) {
+    listUserInfo.value.splice(index, 1, userEdit);
+  }
+}
+
 const handleSubmit = () => {
   if (isError.value) {
     alert('Please enter all input boxes completely or Base Fare Price and Base Fare Distance difference 0!')
     router.push({ name: 'home' });
     return;
   }
-  // check trong local storage co listUser thi gan lai listUser
+
   const filesDataExists = !!localStorage.getItem('filesData');
   const storedData = localStorage.getItem('filesData');
   if (filesDataExists && storedData) {
@@ -173,27 +183,30 @@ const handleSubmit = () => {
 
   if (!isEdit.value) {
     // tinh fare tuong ung voi user vua nhap
-    priceFare(csvInfo.distanceTravel, csvInfo.travelUnit, csvInfo.costPerDistance, userInfo.value.baseDistance, userInfo.value.baseFare);
+    // priceFare(dataCsv.value[0]['0'], dataCsv.value[0]['1'], dataCsv.value[0]['2'], userInfo.value.baseDistance, userInfo.value.baseFare);
     listUserInfo.value.push({
+      id: uuidv4(),
       name: userInfo.value.name,
       surName: userInfo.value.surName,
       email: userInfo.value.email,
       vehicleType: userInfo.value.vehicleType,
       baseFare: userInfo.value.baseFare,
       baseDistance: userInfo.value.baseDistance,
-      fare: priceFare(csvInfo.distanceTravel, csvInfo.travelUnit, csvInfo.costPerDistance, userInfo.value.baseDistance, userInfo.value.baseFare)
+      fare: priceFare(dataCsv.value[0]['0'], dataCsv.value[0]['1'], dataCsv.value[0]['2'], userInfo.value.baseDistance, userInfo.value.baseFare)
     })
   } else {
-    replaceObjectByKey({
+    updateData({
+      id: route.params.id.toString(),
       name: userInfo.value.name,
       surName: userInfo.value.surName,
       email: userInfo.value.email,
       vehicleType: userInfo.value.vehicleType,
       baseFare: userInfo.value.baseFare,
       baseDistance: userInfo.value.baseDistance,
-      fare: priceFare(csvInfo.distanceTravel, csvInfo.travelUnit, csvInfo.costPerDistance, userInfo.value.baseDistance, userInfo.value.baseFare)
+      fare: priceFare(dataCsv.value[0]['0'], dataCsv.value[0]['1'], dataCsv.value[0]['2'], userInfo.value.baseDistance, userInfo.value.baseFare)
     })
   }
+
   // luu vao local storage
   const filesJSONString = JSON.stringify(listUserInfo.value);
   localStorage.setItem('filesData', filesJSONString);

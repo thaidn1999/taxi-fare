@@ -1,6 +1,14 @@
 <template>
   <div class="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
-    <h2 class="text-3xl text-center my-8">List User Infomation</h2>
+    <h2 class="text-3xl text-center mt-8">List User Infomation</h2>
+    <div class="flex">
+      <input type="file" ref="inputFileCsv" class="hidden" accept=".csv" @change="handleFileChange" />
+      <button type="button" class="rounded-md bg-blue-500 hover:bg-blue-400 font-semibold text-white py-2 px-4 my-6"
+        @click="handleInput">
+        Add file CSV
+      </button>
+      <p class="mt-7 mx-2" v-if="selectedFile">Selected file: {{ selectedFile }}</p>
+    </div>
     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
       <table class="w-full text-sm text-left rtl:text-right text-gray-500 ">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 ">
@@ -58,10 +66,10 @@
               {{ infoUser.fare }}
             </td>
             <td class="px-6 py-4 text-right">
-              <p @click="handleDelete(infoUser.email)" class="font-medium text-red-600 hover:cursor-pointer">Delete</p>
+              <p @click="handleDelete(infoUser.id)" class="font-medium text-red-600 hover:cursor-pointer">Delete</p>
             </td>
             <td class="px-6 py-4 text-right">
-              <p @click="handleEdit(infoUser, index)" class="font-medium text-blue-600 hover:cursor-pointer">Edit
+              <p @click=handleEdit(infoUser.id) class="font-medium text-blue-600 hover:cursor-pointer">Edit
               </p>
             </td>
           </tr>
@@ -69,7 +77,8 @@
       </table>
     </div>
     <div class="flex justify-end">
-      <button type="button" class="rounded-md bg-green-500 hover:bg-green-400 font-semibold text-white py-2 px-4 my-6"
+      <button type="button" class="rounded-md font-semibold text-white py-2 px-4 my-6"
+        :class="!isDisable ? 'bg-gray-500' : 'bg-green-500 hover:bg-green-400'" :disabled="!isDisable"
         @click="handleAddUser">Add user</button>
     </div>
   </div>
@@ -79,20 +88,48 @@
 import type { IUser } from '@/interface/user';
 import router from '@/router';
 import { ref } from 'vue';
+import Papa from 'papaparse'
+
+const csvData = ref([])
+const selectedFile = ref()
+
+const inputFileCsv = ref();
 
 const storedData = localStorage.getItem('filesData');
 const filesData = ref<IUser[]>([])
-
+const isDisable = ref<boolean>(false)
 if (storedData) {
   filesData.value = JSON.parse(storedData);
 }
 
-const handleEdit = (userInfo: IUser, idUser: number) => {
-  // Navigate to the route '/user' and pass the object as query parameters
-  router.push({ name: 'edit-user', query: { user: JSON.stringify(userInfo) }, params: { id: idUser } })
+const handleFileChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file: File | null = (target.files as FileList)[0];
+  selectedFile.value = file.name
+  if (file) {
+    Papa.parse(file, {
+      complete: function (results: any) {
+        csvData.value = results.data;
+        const filesJSONString = JSON.stringify(csvData.value);
+        localStorage.setItem('fileCsv', filesJSONString);
+        isDisable.value = true
+      }
+    });
+  }
+};
+
+const handleInput = () => {
+  inputFileCsv.value.click();
 }
-const handleDelete = (userEmail: string) => {
-  const index = filesData.value.findIndex(item => item.email === userEmail);
+
+const handleEdit = (idUser: string | undefined) => {
+  if (idUser) {
+    // Navigate to the route '/user' and pass the object as query parameters
+    router.push({ name: 'edit-user', params: { id: idUser } })
+  }
+}
+const handleDelete = (id: string | undefined) => {
+  const index = filesData.value.findIndex(item => item.id === id);
   if (index !== -1) {
     filesData.value.splice(index, 1);
   }
@@ -102,6 +139,9 @@ const handleDelete = (userEmail: string) => {
 const handleAddUser = () => {
   router.push({ name: 'add-user' })
 }
+// watch(() => csvData.value, () => {
+//   csvData.value.length > 0 ? isDisable.value = false : isDisable.value = true
+// })
 </script>
 
 <style lang="scss" scoped></style>
