@@ -4,7 +4,7 @@ export interface IUser {
   surName: string;
   email: string;
   vehicleType: string;
-  baseFare: number;
-  baseDistance: number;
+  baseFare: string;
+  baseDistance: string;
   fare?: number;
 }

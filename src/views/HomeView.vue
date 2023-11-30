@@ -2,7 +2,7 @@
   <h2 class="text-center text-3xl">{{ isEdit ? 'Edit' : 'Register' }}</h2>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="mx-auto max-w-md">
-      <form>
+      <form @submit.prevent="event => event.preventDefault()">
         <div class="space-y-12">
           <div class="border-b border-gray-900/10 pb-12">
             <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
@@ -10,24 +10,32 @@
               <div class="sm:col-span-6">
                 <label for="username" class="block text-sm font-medium leading-6 text-gray-900">Name</label>
                 <div class="mt-2">
-                  <div
-                    class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+                  <div class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300">
                     <input v-model="userInfo.name" type="text" name="username" id="username"
+                      @blur="() => userInfo.name === '' ? isName = true : isName = false"
                       class="block flex-1 border-0 bg-transparent py-1.5 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      :class="isName ? 'border border-red-500 border-solid rounded-md focus-within:ring-red-500' : null"
                       placeholder="Smith" />
                   </div>
+                  <p v-if="isName" class="text-red-500 text-sm mt-1">
+                    Please enter a valid name
+                  </p>
                 </div>
               </div>
 
               <div class="sm:col-span-6">
                 <label for="surname" class="block text-sm font-medium leading-6 text-gray-900">Surname</label>
                 <div class="mt-2">
-                  <div
-                    class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+                  <div class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300">
                     <input v-model="userInfo.surName" type="text" name="surname" id="surname"
+                      @blur="() => userInfo.surName === '' ? isSurName = true : isSurName = false"
                       class="block flex-1 border-0 bg-transparent py-1.5 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      :class="isSurName ? 'border border-red-500 border-solid rounded-md focus-within:ring-red-500' : null"
                       placeholder="Jane" />
                   </div>
+                  <p v-if="isSurName" class="text-red-500 text-sm mt-1">
+                    Please enter a valid surname
+                  </p>
                 </div>
               </div>
 
@@ -35,10 +43,14 @@
                 <label for="email" class="block text-sm font-medium leading-6 text-gray-900">Email</label>
                 <div class="mt-2">
                   <div class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300">
-                    <input v-model="userInfo.email" type="email" name="email" id="email"
+                    <input v-model="userInfo.email" type="email" name="email" id="email" @blur="handleBlurEmail"
                       class="block flex-1 border-0 bg-transparent py-1.5 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
-                      placeholder="janesmith@gmail.com" />
+                      :class="isEmail ? 'border border-red-500 border-solid rounded-md focus-within:ring-red-500' : null"
+                      pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" placeholder=" janesmith@gmail.com" />
                   </div>
+                  <p v-if="isEmail" class="text-red-500 text-sm mt-1">
+                    Please enter a valid email
+                  </p>
                 </div>
               </div>
 
@@ -46,23 +58,32 @@
               <div class="sm:col-span-6">
                 <label for="vehicle" class="block text-sm font-medium leading-6 text-gray-900">Vehicle Type</label>
                 <div class="mt-2">
-                  <div
-                    class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+                  <div class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300">
                     <input v-model="userInfo.vehicleType" type="text" name="vehicle" id="vehicle"
-                      class="block flex-1 border-0 bg-transparent py-1.5 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6" />
+                      @blur="() => userInfo.vehicleType === '' ? isVehicle = true : isVehicle = false"
+                      class="block flex-1 border-0 bg-transparent py-1.5 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      :class="isVehicle ? 'border border-red-500 border-solid rounded-md focus-within:ring-red-500' : null" />
                   </div>
+                  <p v-if="isVehicle" class="text-red-500 text-sm mt-1">
+                    Please enter a valid Vehicle Type
+                  </p>
                 </div>
               </div>
 
               <div class="sm:col-span-6">
-                <label for="basefare" class="block text-sm font-medium leading-6 text-gray-900">Base Fare
-                  Price</label>
+                <label for="basefare" class="block text-sm font-medium leading-6 text-gray-900">
+                  Base Fare Price
+                </label>
                 <div class="mt-2">
-                  <div
-                    class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+                  <div class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300">
                     <input v-model="userInfo.baseFare" type="number" name="basefare" id="basefare"
-                      class="block flex-1 border-0 bg-transparent py-1.5 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6" />
+                      @blur="() => userInfo.baseFare === '' ? isFare = true : isFare = false"
+                      class="block flex-1 border-0 bg-transparent py-1.5 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      :class="isFare ? 'border border-red-500 border-solid rounded-md' : null" />
                   </div>
+                  <p v-if="isFare" class="text-red-500 text-sm mt-1">
+                    Please enter a valid Base Fare Price
+                  </p>
                 </div>
               </div>
 
@@ -71,11 +92,15 @@
                   Base Fare Distance
                 </label>
                 <div class="mt-2">
-                  <div
-                    class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+                  <div class="w-full flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300">
                     <input v-model="userInfo.baseDistance" type="number" name="distance" id="distance"
-                      class="block flex-1 border-0 bg-transparent py-1.5 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6" />
+                      @blur="() => userInfo.baseDistance === '' ? isDistance = true : isDistance = false"
+                      class="block flex-1 border-0 bg-transparent py-1.5 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      :class="isDistance ? 'border border-red-500 border-solid rounded-md ' : null" />
                   </div>
+                  <p v-if="isDistance" class="text-red-500 text-sm mt-1">
+                    Please enter a valid Base Fare Distance
+                  </p>
                 </div>
               </div>
             </div>
@@ -86,8 +111,9 @@
           <button class="text-sm font-semibold leading-6 text-gray-900" @click="handleCancel">
             Cancel
           </button>
-          <button @click="handleSubmit"
-            class="rounded-md cursor-pointer bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+          <button @click="handleSubmit" :disabled="isError"
+            class="rounded-md cursor-pointer bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+            :class="isError ? 'cursor-default bg-indigo-400 hover:bg-indigo-400' : null">
             Save
           </button>
         </div>
@@ -98,7 +124,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import type { IUser } from '@/interface/user';
-import { priceFare } from '@/modules/utilities';
 import { useRoute, useRouter } from 'vue-router';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -120,9 +145,16 @@ const userInfo = ref<IUser>({
   surName: '',
   email: '',
   vehicleType: '',
-  baseFare: 0,
-  baseDistance: 0
+  baseFare: '',
+  baseDistance: ''
 })
+
+const isName = ref<boolean>(false);
+const isSurName = ref<boolean>(false);
+const isEmail = ref<boolean>(false);
+const isVehicle = ref<boolean>(false);
+const isFare = ref<boolean>(false);
+const isDistance = ref<boolean>(false);
 
 const isError = ref<boolean>(true);
 
@@ -131,8 +163,8 @@ const userInfoEdit = ref<IUser>({
   surName: '',
   email: '',
   vehicleType: '',
-  baseFare: 0,
-  baseDistance: 0
+  baseFare: '',
+  baseDistance: ''
 })
 
 if (isEdit.value) {
@@ -168,10 +200,22 @@ const updateData = (userEdit: IUser) => {
   }
 }
 
+const validateEmail = (email: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+
+const handleBlurEmail = () => {
+  if (!validateEmail(userInfo.value.email) || userInfo.value.email === '') {
+    isEmail.value = true;
+  } else {
+    isEmail.value = false;
+  }
+}
+
 const handleSubmit = () => {
   if (isError.value) {
-    alert('Please enter all input boxes completely or Base Fare Price and Base Fare Distance difference 0!')
-    router.push({ name: 'home' });
     return;
   }
 
@@ -183,7 +227,6 @@ const handleSubmit = () => {
 
   if (!isEdit.value) {
     // tinh fare tuong ung voi user vua nhap
-    // priceFare(dataCsv.value[0]['0'], dataCsv.value[0]['1'], dataCsv.value[0]['2'], userInfo.value.baseDistance, userInfo.value.baseFare);
     listUserInfo.value.push({
       id: uuidv4(),
       name: userInfo.value.name,
@@ -192,7 +235,6 @@ const handleSubmit = () => {
       vehicleType: userInfo.value.vehicleType,
       baseFare: userInfo.value.baseFare,
       baseDistance: userInfo.value.baseDistance,
-      fare: priceFare(dataCsv.value[0]['0'], dataCsv.value[0]['1'], dataCsv.value[0]['2'], userInfo.value.baseDistance, userInfo.value.baseFare)
     })
   } else {
     updateData({
@@ -203,7 +245,6 @@ const handleSubmit = () => {
       vehicleType: userInfo.value.vehicleType,
       baseFare: userInfo.value.baseFare,
       baseDistance: userInfo.value.baseDistance,
-      fare: priceFare(dataCsv.value[0]['0'], dataCsv.value[0]['1'], dataCsv.value[0]['2'], userInfo.value.baseDistance, userInfo.value.baseFare)
     })
   }
 
@@ -219,20 +260,14 @@ const resetForm = () => {
     surName: '',
     email: '',
     vehicleType: '',
-    baseFare: 0,
-    baseDistance: 0
+    baseFare: '',
+    baseDistance: ''
   }
 }
 
 watch(() => userInfo.value, () => {
-  if (isEdit.value) {
-    !userInfo.value.name || !userInfo.value.surName || !userInfo.value.vehicleType || !userInfo.value.baseFare || !userInfo.value.baseDistance ? isError.value = true : isError.value = false
-  }
-  else {
-    !userInfo.value.name || !userInfo.value.surName || !userInfo.value.email
-      || !userInfo.value.baseFare || !userInfo.value.baseDistance || !userInfo.value.vehicleType ? isError.value = true : isError.value = false
-  }
-}, { deep: true, immediate: true })
+  !isName.value && !isSurName.value && !isEmail.value && !isVehicle.value && !isFare.value && !isDistance.value ? isError.value = false : isError.value = true
+}, { deep: true })
 
 </script>
 

@@ -43,7 +43,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(infoUser, index) in filesData" :key="index" class="bg-white border-b  hover:bg-gray-50 ">
+          <tr v-for="(infoUser, index) in getListData" :key="index" class="bg-white border-b  hover:bg-gray-50 ">
             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
               {{ infoUser.name }}
             </th>
@@ -77,8 +77,7 @@
       </table>
     </div>
     <div class="flex justify-end">
-      <button type="button" class="rounded-md font-semibold text-white py-2 px-4 my-6"
-        :class="!isDisable ? 'bg-gray-500' : 'bg-green-500 hover:bg-green-400'" :disabled="!isDisable"
+      <button type="button" class="rounded-md font-semibold text-white py-2 px-4 my-6 bg-green-500 hover:bg-green-400"
         @click="handleAddUser">Add user</button>
     </div>
   </div>
@@ -87,19 +86,25 @@
 <script setup lang="ts">
 import type { IUser } from '@/interface/user';
 import router from '@/router';
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import Papa from 'papaparse'
+import { priceFare } from '@/modules/utilities';
 
 const csvData = ref([])
 const selectedFile = ref()
-
 const inputFileCsv = ref();
 
 const storedData = localStorage.getItem('filesData');
+
 const filesData = ref<IUser[]>([])
-const isDisable = ref<boolean>(false)
+const filesDataCalculated = ref<IUser[]>([])
+const isDisable = ref<boolean>(true)
 if (storedData) {
   filesData.value = JSON.parse(storedData);
+}
+
+const handleInput = () => {
+  inputFileCsv.value.click();
 }
 
 const handleFileChange = (event: Event) => {
@@ -110,17 +115,18 @@ const handleFileChange = (event: Event) => {
     Papa.parse(file, {
       complete: function (results: any) {
         csvData.value = results.data;
-        const filesJSONString = JSON.stringify(csvData.value);
-        localStorage.setItem('fileCsv', filesJSONString);
         isDisable.value = true
+        if (csvData.value.length) {
+          filesData.value.forEach((item: IUser) => {
+            // priceFare(dataCsv.value[0]['0'], dataCsv.value[0]['1'], dataCsv.value[0]['2'], userInfo.value.baseDistance, userInfo.value.baseFare);
+            const fare = priceFare(csvData.value[0]['0'], csvData.value[0]['1'], csvData.value[0]['2'], Number(item.baseDistance), Number(item.baseFare))
+            filesDataCalculated.value.push({ ...item, fare: fare })
+          })
+        }
       }
     });
   }
 };
-
-const handleInput = () => {
-  inputFileCsv.value.click();
-}
 
 const handleEdit = (idUser: string | undefined) => {
   if (idUser) {
@@ -139,9 +145,13 @@ const handleDelete = (id: string | undefined) => {
 const handleAddUser = () => {
   router.push({ name: 'add-user' })
 }
-// watch(() => csvData.value, () => {
-//   csvData.value.length > 0 ? isDisable.value = false : isDisable.value = true
-// })
+
+const getListData = computed(() => {
+  return filesDataCalculated.value.length > 0 ? filesDataCalculated.value : filesData.value
+})
+watch(() => csvData.value, () => {
+  csvData.value.length > 0 ? isDisable.value = false : isDisable.value = true
+}, { deep: true, immediate: true })
 </script>
 
 <style lang="scss" scoped></style>
